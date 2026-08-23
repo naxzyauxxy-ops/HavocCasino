@@ -1,162 +1,86 @@
-# HavocCasino
+# WagersPlugin
 
-Casino games for **Purpur / Paper 1.21.x** — an animated slot machine, a mines
-board, and a progressive jackpot, all played with server **money** via Vault.
+Challenge players to a fight for money. When a wager is accepted, both players are randomly teleported (RTP) to a spot in the wild, frozen for a countdown, and then the fight starts. Winner takes the whole pot.
 
 ## Features
+- `/wager <player> <amount> [mode]` — challenge someone for money (Vault economy)
+- Multiple fight modes: **Classic** (your own gear), **Diamond**, **NoDebuff**, **Sumo**, **Hardcore**
+- RTP: both players teleport to a random safe spot, spawned a few blocks apart, facing each other
+- Configurable pre-fight freeze countdown (default 5s) with titles + sounds
+- Money is taken up front and held; winner receives the full pot
+- Kit modes snapshot and restore your real inventory after the fight (no item loss)
+- Outsiders can't interfere; quitting or forfeiting counts as a loss
+- Requests expire, server-wide fight broadcasts, tab completion
 
-- `/slots <bet>` — animated 3-reel slot GUI with weighted symbols and payouts.
-- `/mines <bet> [mines]` — reveal tiles on a 5x5 board; the multiplier climbs with each safe tile, cash out any time before hitting a mine.
-- `/jackpot [bet]` — progressive pool; each entry feeds the pot and rolls for the whole thing.
-- `/gcrate [name]` — CS:GO-style crate opening: pay the crate cost, watch the reel spin, and win a weighted money multiple (or bust). Crates are defined in `crates.yml`.
-- `/gamblingroom` (`/groom`) — gives each player their own gambling room: a saved schematic is pasted onto a plot grid and the player is teleported in. `/gamblingroom tp` returns them, `/gamblingroom delete` releases it. Optional creation cost via `rooms.cost`.
-- `/casinomenu` (`/casino`) — opens a casino hub GUI (Slots, Mines, Jackpot bet-pickers, Crates, and your room). Designed to attach to an NPC.
-- `/havoccasino` (`/hc`) — admin: reload config and manage the jackpot pool.
-- MiniMessage-styled output, configurable bets, weights, odds and prefix.
-- **Customizable messages** in `messages.yml` with placeholders (internal `{tokens}` + PlaceholderAPI).
-- **Per-player message toggle** — each player turns HavocCasino messages on/off for themselves via a green (ON) / red (OFF) button (`/hc messages`).
+## Commands
+| Command | Description |
+|---|---|
+| `/wager <player> <amount> [mode]` | Send a wager challenge |
+| `/wager accept` | Accept the pending challenge |
+| `/wager deny` | Deny the pending challenge |
+| `/wager modes` | List fight modes |
+| `/wager forfeit` | Give up (opponent wins the pot) |
+| `/wager messages` | Toggle wager broadcasts per-player (**green ON** / **red OFF**) |
+| `/wager stats [player]` | View wins, losses, and money won/lost |
+| `/wager join` | Join the current event (also via the clickable chat button) |
+| `/wager leave` | Leave the join queue (fee refunded) |
+| `/wager event` | Show the next event's name, mode, prize, status, and timer |
+
+Aliases: `/duel`, `/bet`
+
+## Messages & toggle
+Every message lives in `messages.yml` and is fully editable (colors with `&`). Each player can turn wager broadcasts on/off for themselves with `/wager messages` — the state shows as green **ON** or red **OFF** and is saved in `data.yml`. Fight participants always receive their own fight messages.
+
+## Rotating Events
+Events cycle automatically through the `events.rotation` list in `config.yml` — each has its own name, mode, prize, and optional entry fee. The flow: countdown between events → chat announcement with a clickable **[CLICK TO JOIN]** button (hover shows prize + fee) → join window → everyone teleports (RTP) into a circle, frozen countdown → FFA fight, last one standing wins the prize + all entry fees. When an event ends, the rotation advances to the next one and the placeholders switch to the new name and timer automatically. Not enough players or a timeout = fees refunded.
+
+Event settings: `interval-seconds`, `join-seconds`, `min-players`, `max-fight-seconds`, `animation-frame-seconds`.
+
+## PlaceholderAPI (optional soft-depend)
+If PlaceholderAPI is installed, these placeholders register automatically:
+
+| Placeholder | Value |
+|---|---|
+| `%wagers_wins%` | Total wins |
+| `%wagers_losses%` | Total losses |
+| `%wagers_money_won%` | Total money won |
+| `%wagers_money_lost%` | Total money lost |
+| `%wagers_net%` | Net profit |
+| `%wagers_messages%` | Toggle state — green ON / red OFF |
+| `%wagers_infight%` | true/false currently fighting |
+| `%wagers_mode%` | Current fight mode |
+| `%wagers_pot%` | Current fight pot |
+| `%wagers_event_name%` | Current/next event name |
+| `%wagers_event_time%` | Live countdown timer (waiting → join → LIVE) |
+| `%wagers_event_status%` | Waiting / JOINABLE / LIVE |
+| `%wagers_event_players%` | Players joined / alive |
+| `%wagers_event_prize%` | Event pot (prize + fees) |
+| `%wagers_event_mode%` | Event fight mode |
+| `%wagers_event_animated%` | **Animated**: cycles event name → timer → join hint |
+
+PlaceholderAPI placeholders also work inside `messages.yml`.
 
 ## Requirements
-
-- Java 21
-- Purpur or Paper 1.21.x
-- **Vault** + an economy plugin (e.g. EssentialsX) — required; the plugin disables itself without an economy
-- (Optional) PlaceholderAPI for `%...%` placeholders in messages
+- Spigot/Paper 1.20+
+- Java 17
+- [Vault](https://www.spigotmc.org/resources/vault.34315/) + any economy plugin (e.g. EssentialsX)
+- [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) (optional, for placeholders)
 
 ## Building
+### GitHub Actions (easiest)
+Push this repo to GitHub. The workflow in `.github/workflows/build.yml` builds automatically — download the jar from the **Actions** tab → latest run → **Artifacts** → `WagersPlugin`.
 
-The build is wired to compile **and obfuscate** in one step (ProGuard runs in the
-`package` phase and rewrites the jar in place).
-
-```bash
-mvn clean package
+### Local
 ```
-
-The finished plugin lands at:
-
+mvn package
 ```
-target/HavocCasino-1.0.0.jar
-```
+Jar output: `target/WagersPlugin-1.0.0.jar`
 
-Drop that jar into your server's `plugins/` folder.
-
-### CI build
-
-`.github/workflows/build.yml` builds the obfuscated jar on every push and uploads
-it as a workflow artifact (`HavocCasino-plugin`). Push this repo to GitHub and grab
-the jar from the **Actions** tab — no local Maven needed.
-
-## Obfuscation notes
-
-`proguard.conf` renames and repackages classes, flattens the package hierarchy,
-strips source-file names and runs several optimization passes, so decompiled output
-is messy and hard to follow. What's deliberately kept readable (because the server
-needs it): the main class named in `plugin.yml`, `@EventHandler` methods, enum
-`values()/valueOf()`, and the GUI holder type.
-
-Honest caveat: no tool makes JVM bytecode *impossible* to decompile. ProGuard raises
-the effort a lot, but a determined person can still recover logic. If you need to run
-after obfuscation and something misbehaves, loosen the aggressive options
-(`-overloadaggressively` is intentionally omitted for that reason) and re-test.
-
-## Messages & placeholders
-
-All player-facing game text lives in `messages.yml` and is fully editable. Templates
-support MiniMessage formatting and two kinds of placeholders:
-
-- **Internal tokens** filled by the plugin: `{amount}`, `{multiplier}`, `{player}`,
-  `{pool}`, `{chance}`.
-- **PlaceholderAPI** `%...%` placeholders (when PlaceholderAPI is installed), including
-  this plugin's own expansion:
-  - `%havoccasino_jackpot%` — formatted jackpot pool (`%havoccasino_jackpot_raw%` for the number)
-  - `%havoccasino_messages%` — `ON` / `OFF` for that player
-
-### Turning messages on/off (client-side, per player)
-
-Each player controls whether they receive HavocCasino messages:
-
-- `/hc messages` — opens a settings screen with a **green ON** / **red OFF** toggle button; click to flip.
-- `/hc messages on` / `/hc messages off` — quick toggle without the GUI.
-
-The preference is saved per player in `settings.yml` and defaults to ON. Jackpot
-broadcasts and game results respect each player's choice individually.
-
-## Gambling rooms (wand + schematics)
-
-A built-in, self-contained schematic system (no WorldEdit required) lets you turn any
-build into a room players can spawn for themselves.
-
-Set-up (admin, needs `havoccasino.admin`):
-
-1. Build the room somewhere.
-2. `/hc wand` — get the selection wand (a golden axe). **Left-click** one corner, **right-click** the opposite corner.
-3. `/hc schem save <name>` — saves the selection to `schematics/<name>.yml`.
-4. Stand where the room's minimum corner should paste and run `/hc room origin`.
-5. `/hc room schematic <name>` — set that schematic as the room template. (`/hc room info` shows current settings.)
-
-Players then run `/gamblingroom` to build-and-enter their own copy; each new room is
-placed on the next free plot of a grid (`rooms.spacing` / `rooms.columns`). Pastes are
-batched over ticks (`rooms.blocks-per-tick`) so big rooms don't freeze the server, and
-selections are capped by `rooms.max-volume`.
-
-## Settings-dialog integration (Wager Alerts)
-
-This plugin does not register a `/wager` command. It still exposes the alert status
-placeholder for dialogs, and toggling is done through `/hc messages`:
-
-- Placeholder `%wagers_messages%` — the coloured ON/OFF status of the player's alerts
-  (text/colour configurable via `alerts-placeholder` in config); `%wagers_messages_raw%`
-  gives plain `ON`/`OFF`. (`%havoccasino_messages%` also works.)
-- Toggle with `/hc messages` (opens the settings screen) or `/hc messages on|off`.
-
-Example dialog row:
-
-```
-- LABEL: "  Wager Alerts: %wagers_messages%"
-  COMMAND: "hc messages"
-```
-
-If the `wagers` placeholder itself clashes with another plugin, tell me and I'll remove it too.
-
-## NPC integration (Citizens)
-
-`/casinomenu` opens the hub GUI, so any NPC plugin that can run a command on click works.
-With Citizens:
-
-```
-/npc select
-/npc command add casinomenu
-```
-
-Citizens runs the command as the clicking player, so the menu opens for them. From the
-menu they can play Slots/Mines/Jackpot (choosing from the `casino-menu.bet-presets`),
-open crates, or create/enter their gambling room — no typing required. If `/casino`
-clashes with another plugin, use `/casinomenu` (or the namespaced `havoccasino:casinomenu`).
-
-## Config quick reference
-
-- `betting.min-bet` / `max-bet` — slot bet bounds.
-- `slots.two-match-multiplier` — payout when two reels match.
-- `mines.default-mines` / `min-mines` / `max-mines` — mine count bounds on the 5x5 board.
-- `mines.house-edge` — fraction shaved off the fair cash-out multiplier.
-- `jackpot.seed` — pool value after a win.
-- `jackpot.contribution-percent` — fraction of each entry added to the pool.
-- `jackpot.win-chance` — 0.0–1.0 chance an entry wins the pool.
-- `jackpot.min-entry` — minimum entry amount.
-
-Crates live in their own file, `crates.yml`: each crate has a `cost` and a weighted
-`rewards` table where `payout = cost * multiplier` (multiplier `0` is a bust). Tune
-weights vs. multipliers to set the house edge; the defaults sit near 5%.
-
-## Permissions
-
-| Permission           | Default | Grants                    |
-|----------------------|---------|---------------------------|
-| `havoccasino.slots`  | true    | `/slots`                  |
-| `havoccasino.mines`  | true    | `/mines`                  |
-| `havoccasino.jackpot`| true    | `/jackpot`                |
-| `havoccasino.crates` | true    | `/gcrate`                 |
-| `havoccasino.room`   | true    | `/gamblingroom`           |
-| `havoccasino.menu`   | true    | `/casinomenu`             |
-| `havoccasino.messages`| true   | `/hc messages` (self)     |
-| `havoccasino.admin`  | op      | `/havoccasino` admin cmds |
+## Config (`config.yml`)
+- `countdown-seconds` — freeze time before the fight starts
+- `request-expire-seconds` — how long challenges last
+- `min-wager` / `max-wager` — stake limits
+- `rtp.world` — world for fights (empty = challenger's world)
+- `rtp.radius` — RTP range around spawn
+- `rtp.player-gap` — distance between the two fighters
+- `broadcast-fights` — announce fights/results server-wide
