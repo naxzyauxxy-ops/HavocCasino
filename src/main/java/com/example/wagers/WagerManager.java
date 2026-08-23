@@ -378,7 +378,34 @@ public class WagerManager {
     public Wager getWager(UUID id) { return activeWagers.get(id); }
     public boolean isFrozen(UUID id) { return frozen.contains(id); }
 
+    private static final String[] SUFFIXES = {"", "K", "M", "B", "T", "Q"};
+
+    /** Format money: $1,000 -> $1K, $5,000,000 -> $5M, $2,500,000,000 -> $2.5B */
     public static String fmt(double amount) {
-        return "$" + (amount == Math.floor(amount) ? String.valueOf((long) amount) : String.format("%.2f", amount));
+        WagersPlugin pl = WagersPlugin.get();
+        boolean abbreviate = pl == null || pl.getConfig().getBoolean("abbreviate-money", true);
+        boolean negative = amount < 0;
+        double abs = Math.abs(amount);
+
+        if (!abbreviate || abs < 1000) {
+            String plain = abs == Math.floor(abs) ? String.valueOf((long) abs) : String.format("%.2f", abs);
+            return (negative ? "-$" : "$") + plain;
+        }
+
+        int tier = 0;
+        while (abs >= 1000 && tier < SUFFIXES.length - 1) {
+            abs /= 1000;
+            tier++;
+        }
+        // Rounding can push 999.99K up to 1000K - bump to the next tier
+        if (Math.round(abs * 100) >= 100000 && tier < SUFFIXES.length - 1) {
+            abs /= 1000;
+            tier++;
+        }
+        // Up to 2 decimals, trimming trailing zeros: 5M, 1.5K, 2.25B
+        String num = String.format("%.2f", abs)
+                .replaceAll("0+$", "")
+                .replaceAll("\\.$", "");
+        return (negative ? "-$" : "$") + num + SUFFIXES[tier];
     }
 }

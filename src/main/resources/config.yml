@@ -10,6 +10,11 @@ request-expire-seconds: 60
 min-wager: 1.0
 max-wager: 1000000.0
 
+# Abbreviate money everywhere: $5,000,000 shows as $5M, $1,500 as $1.5K
+# (K = thousand, M = million, B = billion, T = trillion, Q = quadrillion)
+# Set to false for full numbers.
+abbreviate-money: true
+
 # Announce fights + results to the whole server
 broadcast-fights: true
 
