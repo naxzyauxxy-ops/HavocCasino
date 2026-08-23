@@ -30,9 +30,6 @@ commands:
     description: Open the casino menu (attach to an NPC).
     usage: /casinomenu
     aliases: [casino]
-  wager:
-    description: Open the casino, or toggle your wager alerts.
-    usage: /wager [messages]
   havoccasino:
     description: Admin commands for HavocCasino.
     usage: /havoccasino <reload|jackpot|wand|schem|room|messages>

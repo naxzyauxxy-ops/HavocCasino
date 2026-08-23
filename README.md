@@ -101,19 +101,22 @@ selections are capped by `rooms.max-volume`.
 
 ## Settings-dialog integration (Wager Alerts)
 
-For server settings dialogs that expose a "Wager Alerts" toggle, the plugin provides:
+This plugin does not register a `/wager` command. It still exposes the alert status
+placeholder for dialogs, and toggling is done through `/hc messages`:
 
-- Command `wager messages` — toggles the player's HavocCasino alerts (on/off). `wager messages on|off` sets it explicitly.
-- Placeholder `%wagers_messages%` — the coloured ON/OFF status (text/colour configurable via `alerts-placeholder` in config); `%wagers_messages_raw%` gives plain `ON`/`OFF`.
+- Placeholder `%wagers_messages%` — the coloured ON/OFF status of the player's alerts
+  (text/colour configurable via `alerts-placeholder` in config); `%wagers_messages_raw%`
+  gives plain `ON`/`OFF`. (`%havoccasino_messages%` also works.)
+- Toggle with `/hc messages` (opens the settings screen) or `/hc messages on|off`.
 
 Example dialog row:
 
 ```
 - LABEL: "  Wager Alerts: %wagers_messages%"
-  COMMAND: "wager messages"
+  COMMAND: "hc messages"
 ```
 
-(`%havoccasino_messages%` and `/hc messages` still work too; this just matches the `wagers`/`wager` naming the dialog uses.)
+If the `wagers` placeholder itself clashes with another plugin, tell me and I'll remove it too.
 
 ## NPC integration (Citizens)
 
