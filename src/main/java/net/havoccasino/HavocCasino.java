@@ -7,6 +7,7 @@ import net.havoccasino.command.GamblingRoomCommand;
 import net.havoccasino.command.MinesCommand;
 import net.havoccasino.command.HavocCasinoCommand;
 import net.havoccasino.command.SlotsCommand;
+import net.havoccasino.command.WagerCommand;
 import net.havoccasino.config.CasinoConfig;
 import net.havoccasino.economy.CurrencyService;
 import net.havoccasino.economy.VaultHook;
@@ -16,6 +17,7 @@ import net.havoccasino.game.JackpotManager;
 import net.havoccasino.game.SlotMachine;
 import net.havoccasino.gui.GuiListener;
 import net.havoccasino.hook.HavocExpansion;
+import net.havoccasino.hook.WagersExpansion;
 import net.havoccasino.region.SelectionService;
 import net.havoccasino.region.WandItem;
 import net.havoccasino.region.WandListener;
@@ -94,6 +96,7 @@ public final class HavocCasino extends JavaPlugin {
         }
         registerCommand("gamblingroom", new GamblingRoomCommand(this));
         registerCommand("casinomenu", new CasinoMenuCommand(this));
+        registerCommand("wager", new WagerCommand(this));
         HavocCasinoCommand admin = new HavocCasinoCommand(this);
         registerCommand("havoccasino", admin);
         if (getCommand("havoccasino") != null) {
@@ -106,6 +109,7 @@ public final class HavocCasino extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             try {
                 HavocExpansion.register(this);
+                WagersExpansion.register(this);
                 getLogger().info("PlaceholderAPI found — placeholders registered.");
             } catch (Throwable t) {
                 getLogger().warning("Failed to register PlaceholderAPI expansion: " + t.getMessage());

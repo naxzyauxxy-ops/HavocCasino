@@ -99,6 +99,22 @@ placed on the next free plot of a grid (`rooms.spacing` / `rooms.columns`). Past
 batched over ticks (`rooms.blocks-per-tick`) so big rooms don't freeze the server, and
 selections are capped by `rooms.max-volume`.
 
+## Settings-dialog integration (Wager Alerts)
+
+For server settings dialogs that expose a "Wager Alerts" toggle, the plugin provides:
+
+- Command `wager messages` — toggles the player's HavocCasino alerts (on/off). `wager messages on|off` sets it explicitly.
+- Placeholder `%wagers_messages%` — the coloured ON/OFF status (text/colour configurable via `alerts-placeholder` in config); `%wagers_messages_raw%` gives plain `ON`/`OFF`.
+
+Example dialog row:
+
+```
+- LABEL: "  Wager Alerts: %wagers_messages%"
+  COMMAND: "wager messages"
+```
+
+(`%havoccasino_messages%` and `/hc messages` still work too; this just matches the `wagers`/`wager` naming the dialog uses.)
+
 ## NPC integration (Citizens)
 
 `/casinomenu` opens the hub GUI, so any NPC plugin that can run a command on click works.

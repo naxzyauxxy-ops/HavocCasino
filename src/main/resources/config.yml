@@ -6,6 +6,11 @@ currency:
   # All games use Vault money. This is just the display symbol.
   money-symbol: "$"
 
+# Text returned by %wagers_messages% (used by settings dialogs). Use & colour codes.
+alerts-placeholder:
+  on: "&aON"
+  off: "&cOFF"
+
 betting:
   min-bet: 10
   max-bet: 10000
