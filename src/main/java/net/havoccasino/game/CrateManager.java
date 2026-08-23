@@ -67,8 +67,10 @@ public final class CrateManager {
 
     private CrateReward parseReward(String crateId, Map<?, ?> raw) {
         try {
-            String name = String.valueOf(raw.getOrDefault("name", "<gray>Reward"));
-            Material material = matchMaterial(String.valueOf(raw.getOrDefault("material", "PAPER")), Material.PAPER);
+            Object nameObj = raw.get("name");
+            String name = nameObj != null ? String.valueOf(nameObj) : "<gray>Reward";
+            Object materialObj = raw.get("material");
+            Material material = matchMaterial(materialObj != null ? String.valueOf(materialObj) : "PAPER", Material.PAPER);
             int weight = raw.get("weight") instanceof Number n ? n.intValue() : 1;
             double multiplier = raw.get("multiplier") instanceof Number n ? n.doubleValue() : 0;
             return new CrateReward(name, material, weight, multiplier);
